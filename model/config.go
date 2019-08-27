@@ -2228,7 +2228,7 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	}
 
 	if s.EnforceVerification == nil {
-		s.EnableHealthCheck = NewBool(true)
+		s.EnforceVerification = NewBool(true)
 	}
 
 	if s.Directory == nil {
