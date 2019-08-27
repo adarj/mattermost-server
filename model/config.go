@@ -2192,15 +2192,22 @@ type PluginState struct {
 	Enable bool
 }
 
+type PublicKeyDescription struct {
+	Name        *string
+	Description *string
+}
+
 type PluginSettings struct {
 	Enable                   *bool
 	EnableUploads            *bool   `restricted:"true"`
 	AllowInsecureDownloadUrl *bool   `restricted:"true"`
 	EnableHealthCheck        *bool   `restricted:"true"`
+	EnforceVerification      *bool   `restricted:"true"`
 	Directory                *string `restricted:"true"`
 	ClientDirectory          *string `restricted:"true"`
 	Plugins                  map[string]map[string]interface{}
 	PluginStates             map[string]*PluginState
+	PublicKeys               map[string]*PublicKeyDescription
 }
 
 func (s *PluginSettings) SetDefaults(ls LogSettings) {
@@ -2217,6 +2224,10 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	}
 
 	if s.EnableHealthCheck == nil {
+		s.EnableHealthCheck = NewBool(true)
+	}
+
+	if s.EnforceVerification == nil {
 		s.EnableHealthCheck = NewBool(true)
 	}
 
@@ -2247,6 +2258,10 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	if s.PluginStates["com.mattermost.nps"] == nil {
 		// Enable the NPS plugin by default if diagnostics are enabled
 		s.PluginStates["com.mattermost.nps"] = &PluginState{Enable: ls.EnableDiagnostics == nil || *ls.EnableDiagnostics}
+	}
+
+	if s.PublicKeys == nil {
+		s.PublicKeys = make(map[string]*PublicKeyDescription)
 	}
 }
 
