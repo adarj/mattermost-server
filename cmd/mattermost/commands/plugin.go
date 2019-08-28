@@ -55,6 +55,14 @@ var PluginListCmd = &cobra.Command{
 	RunE:    pluginListCmdF,
 }
 
+var PluginPublicKeysCmd = &cobra.Command{
+	Use:     "publickeys",
+	Short:   "List public keys",
+	Long:    "List names and descriptions of all public keys installed on your Mattermost server.",
+	Example: `  plugin public keys`,
+	RunE:    PluginPublicKeysCmdF,
+}
+
 func init() {
 	PluginCmd.AddCommand(
 		PluginAddCmd,
@@ -62,6 +70,7 @@ func init() {
 		PluginEnableCmd,
 		PluginDisableCmd,
 		PluginListCmd,
+		PluginPublicKeysCmd,
 	)
 	RootCmd.AddCommand(PluginCmd)
 }
@@ -180,6 +189,26 @@ func pluginListCmdF(command *cobra.Command, args []string) error {
 	CommandPrettyPrintln("Listing inactive plugins")
 	for _, plugin := range pluginsResp.Inactive {
 		CommandPrettyPrintln(plugin.Manifest.Name + ", Version: " + plugin.Manifest.Version)
+	}
+
+	return nil
+}
+
+func PluginPublicKeysCmdF(command *cobra.Command, args []string) error {
+	a, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer a.Shutdown()
+
+	pluginPublicKeysResp, appErr := a.GetPluginPublicKeys()
+	if appErr != nil {
+		return errors.New("Unable to list public keys. Error: " + appErr.Error())
+	}
+
+	CommandPrettyPrintln("Listing public keys")
+	for _, publicKeyDesc := range pluginPublicKeysResp {
+		CommandPrettyPrintln(publicKeyDesc.Name + ", Description: " + publicKeyDesc.Description)
 	}
 
 	return nil

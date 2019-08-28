@@ -450,3 +450,9 @@ func (a *App) notifyPluginEnabled(manifest *model.Manifest) error {
 
 	return nil
 }
+
+func (a *App) GetPluginPublicKeys() ([]*model.PublicKeyDescription, *model.AppError) {
+	config := a.Config().PluginSettings
+
+	return config.PublicKeys, nil
+}

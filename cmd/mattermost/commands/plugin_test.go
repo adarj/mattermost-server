@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/config"
+	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -43,4 +44,22 @@ func TestPlugin(t *testing.T) {
 	th.CheckCommand(t, "plugin", "list")
 
 	th.CheckCommand(t, "plugin", "delete", "testplugin")
+}
+
+func TestPluginPublicKeys(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	cfg := th.Config()
+	cfg.PluginSettings.PublicKeys = []*model.PublicKeyDescription{
+		&model.PublicKeyDescription{
+			Name:        "public key",
+			Description: "some desc",
+		},
+	}
+	th.SetConfig(cfg)
+
+	output := th.CheckCommand(t, "plugin", "publickeys")
+	assert.Contains(t, string(output), "public key")
+	assert.Contains(t, string(output), "Description: some desc")
 }

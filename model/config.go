@@ -2193,8 +2193,8 @@ type PluginState struct {
 }
 
 type PublicKeyDescription struct {
-	Name        *string
-	Description *string
+	Name        string
+	Description string
 }
 
 type PluginSettings struct {
@@ -2207,7 +2207,7 @@ type PluginSettings struct {
 	ClientDirectory          *string `restricted:"true"`
 	Plugins                  map[string]map[string]interface{}
 	PluginStates             map[string]*PluginState
-	PublicKeys               map[string]*PublicKeyDescription
+	PublicKeys               []*PublicKeyDescription
 }
 
 func (s *PluginSettings) SetDefaults(ls LogSettings) {
@@ -2261,7 +2261,7 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	}
 
 	if s.PublicKeys == nil {
-		s.PublicKeys = make(map[string]*PublicKeyDescription)
+		s.PublicKeys = []*PublicKeyDescription{}
 	}
 }
 
