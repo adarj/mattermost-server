@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/mlog"
@@ -449,6 +450,10 @@ func (a *App) GetMarketplacePlugins() ([]*model.MarketplacePlugin, *model.AppErr
 			State: model.MarketPlacePluginStateInstalled,
 		})
 	}
+
+	sort.SliceStable(result, func(i, j int) bool {
+		return result[i].Manifest.Name < result[j].Manifest.Name
+	})
 
 	return result, nil
 }
