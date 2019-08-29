@@ -458,8 +458,9 @@ func (a *App) GetPluginPublicKeys() ([]*model.PublicKeyDescription, *model.AppEr
 	return config.PublicKeys, nil
 }
 
-func (a *App) writePublicKeyFile(filename string) *model.AppError {
-	fileReader, err := os.Open(filename)
+func (a *App) writePublicKeyFile(file string) *model.AppError {
+	_, filename := filepath.Split(file)
+	fileReader, err := os.Open(file)
 	if err != nil {
 		return model.NewAppError("AddPublicKey", "api.admin.add_certificate.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -476,12 +477,25 @@ func (a *App) writePublicKeyFile(filename string) *model.AppError {
 	return nil
 }
 
-func (a *App) AddPublicKey(filename string) *model.AppError {
-	if err := a.writePublicKeyFile(filename); err != nil {
+func containsPK(publicKeys []*model.PublicKeyDescription, filename string) bool {
+	for _, pk := range publicKeys {
+		if pk.Name == filename {
+			return true
+		}
+	}
+	return false
+}
+
+// AddPublicKey method will add plugin public key to the config.
+func (a *App) AddPublicKey(file string) *model.AppError {
+	_, filename := filepath.Split(file)
+	cfg := a.Config().Clone()
+	if !containsPK(cfg.PluginSettings.PublicKeys, filename) {
+		cfg.PluginSettings.PublicKeys = append(cfg.PluginSettings.PublicKeys, &model.PublicKeyDescription{filename})
+	}
+	if err := a.writePublicKeyFile(file); err != nil {
 		return err
 	}
-	cfg := a.Config().Clone()
-	cfg.PluginSettings.PublicKeys = append(cfg.PluginSettings.PublicKeys, &model.PublicKeyDescription{filename})
 
 	if err := cfg.IsValid(); err != nil {
 		return err

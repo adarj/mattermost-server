@@ -242,11 +242,11 @@ func PluginAddPublicKeyCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
 
-	for _, pkFilename := range args {
-		if err := a.AddPublicKey(pkFilename); err != nil {
-			CommandPrintErrorln("Unable to add public key: " + pkFilename + ". Error: " + err.Error())
+	for _, pkFilePath := range args {
+		if err := a.AddPublicKey(pkFilePath); err != nil {
+			CommandPrintErrorln("Unable to add public key: " + pkFilePath + ". Error: " + err.Error())
 		} else {
-			CommandPrettyPrintln("Added public key: " + pkFilename)
+			CommandPrettyPrintln("Added public key: " + pkFilePath)
 		}
 
 	}
