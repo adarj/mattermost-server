@@ -452,6 +452,7 @@ func (a *App) notifyPluginEnabled(manifest *model.Manifest) error {
 	return nil
 }
 
+// GetPluginPublicKeys returns all public keys listed in the config.
 func (a *App) GetPluginPublicKeys() ([]*model.PublicKeyDescription, *model.AppError) {
 	config := a.Config().PluginSettings
 
@@ -477,6 +478,7 @@ func (a *App) writePublicKeyFile(file string) *model.AppError {
 	return nil
 }
 
+// GetPublicKey will return the actual public key saved in the `filename` file.
 func (a *App) GetPublicKey(filename string) ([]byte, *model.AppError) {
 	data, err := a.Srv.configStore.GetFile(filename)
 	if err != nil {
