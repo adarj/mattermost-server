@@ -11,36 +11,40 @@ import (
 type MarketplacePluginState int
 
 const (
-	NotInstalled MarketplacePluginState = iota
-	Installed
+	MarketPlacePluginStateNotInstalled MarketplacePluginState = iota
+	MarketPlacePluginStateInstalled
 )
 
-// MarketplacePlugin provides a cluster-aware view of installed plugins.
-type MarketplacePlugin struct {
+// MarketplacePlugin provides a state-aware view of marketplace plugin.
+type BaseMarketplacePlugin struct {
 	HomepageURL  string
 	DownloadURL  string
 	SignatureURL string
 	Manifest     *Manifest
-	State        MarketplacePluginState
 }
 
-type MarketplacePlugins []*MarketplacePlugin
+type MarketplacePlugin struct {
+	*BaseMarketplacePlugin
+	State MarketplacePluginState
+}
+
+// type BaseMarketplacePlugins []*BaseMarketplacePlugin
 
 // PluginFromReader decodes a json-encoded cluster from the given io.Reader.
 func PluginFromReader(reader io.Reader) (*MarketplacePlugin, error) {
-	cluster := MarketplacePlugin{}
+	plugin := MarketplacePlugin{}
 	decoder := json.NewDecoder(reader)
-	err := decoder.Decode(&cluster)
+	err := decoder.Decode(&plugin)
 	if err != nil && err != io.EOF {
 		return nil, err
 	}
 
-	return &cluster, nil
+	return &plugin, nil
 }
 
 // PluginsFromReader decodes a json-encoded list of plugins from the given io.Reader.
-func PluginsFromReader(reader io.Reader) (MarketplacePlugins, error) {
-	plugins := []*MarketplacePlugin{}
+func BasePluginsFromReader(reader io.Reader) ([]*BaseMarketplacePlugin, error) {
+	plugins := []*BaseMarketplacePlugin{}
 	decoder := json.NewDecoder(reader)
 
 	err := decoder.Decode(&plugins)
@@ -51,14 +55,14 @@ func PluginsFromReader(reader io.Reader) (MarketplacePlugins, error) {
 	return plugins, nil
 }
 
-// PluginsFromReader decodes a json-encoded list of plugins from the given io.Reader.
-// ToJson serializes the bot to json.
-func (p *MarketplacePlugin) ToJson() []byte {
-	data, _ := json.Marshal(p)
-	return data
-}
+func PluginsFromReader(reader io.Reader) ([]*MarketplacePlugin, error) {
+	plugins := []*MarketplacePlugin{}
+	decoder := json.NewDecoder(reader)
 
-func (p *MarketplacePlugins) ToJson() []byte {
-	data, _ := json.Marshal(p)
-	return data
+	err := decoder.Decode(&plugins)
+	if err != nil && err != io.EOF {
+		return nil, err
+	}
+
+	return plugins, nil
 }

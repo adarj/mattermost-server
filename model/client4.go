@@ -4494,7 +4494,7 @@ func (c *Client4) DisablePlugin(id string) (bool, *Response) {
 
 // GetMarketplacePlugins will return a list of plugins that the  should download.
 // WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
-func (c *Client4) GetMarketplacePlugins() (MarketplacePlugins, *Response) {
+func (c *Client4) GetMarketplacePlugins() ([]*MarketplacePlugin, *Response) {
 	url := c.GetPluginsRoute() + "/marketplace"
 	r, err := c.DoApiGet(url, "")
 	if err != nil {

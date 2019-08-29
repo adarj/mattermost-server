@@ -7,6 +7,7 @@ package api4
 
 import (
 	"bytes"
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -36,7 +37,8 @@ func (api *API) InitPlugin() {
 	api.BaseRoutes.Plugin.Handle("/disable", api.ApiSessionRequired(disablePlugin)).Methods("POST")
 
 	api.BaseRoutes.Plugins.Handle("/webapp", api.ApiHandler(getWebappPlugins)).Methods("GET")
-	api.BaseRoutes.Plugins.Handle("/marketplace", api.ApiHandler(getMarketplace)).Methods("GET")
+
+	api.BaseRoutes.Plugins.Handle("/marketplace", api.ApiSessionRequired(getMarketplace)).Methods("GET")
 }
 
 func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -251,27 +253,23 @@ func getMarketplace(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	marketplaceUrl := *c.App.Config().PluginSettings.MarketplaceUrl
-
-	res, err := http.Get(marketplaceUrl + "/api/v1/plugins")
-	if err != nil {
-		mlog.Error("Failed to get plugins from marketplace " + err.Error())
+	plugins, appErr := c.App.GetMarketplacePlugins()
+	if appErr != nil {
+		mlog.Error("Failed to get marketplace plugins " + appErr.Error())
 
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte{})
 		return
 	}
-
-	plugins, err := model.PluginsFromReader(res.Body)
+	json, err := json.Marshal(plugins)
 	if err != nil {
-		mlog.Error("Failed to marshal plugins marketplace " + err.Error())
+		mlog.Error("Failed to get marketplace plugins " + err.Error())
 
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte{})
 		return
 	}
-
-	w.Write(plugins.ToJson())
+	w.Write(json)
 }
 
 func enablePlugin(c *Context, w http.ResponseWriter, r *http.Request) {

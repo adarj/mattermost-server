@@ -18,6 +18,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+var ErrNotFound = errors.New("PluginId not found")
+
 type apiImplCreatorFunc func(*model.Manifest) API
 
 // registeredPlugin stores the state for a given plugin that has been activated
@@ -160,6 +162,34 @@ func (env *Environment) Statuses() (model.PluginStatuses, error) {
 	}
 
 	return pluginStatuses, nil
+}
+
+func (env *Environment) Status(pluginId string) (*model.PluginStatus, error) {
+	plugins, err := env.Available()
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to get plugin statuses")
+	}
+
+	for _, plugin := range plugins {
+		if plugin.Manifest == nil || plugin.Manifest.Id != pluginId {
+			continue
+		}
+
+		pluginState := env.GetPluginState(plugin.Manifest.Id)
+
+		status := &model.PluginStatus{
+			PluginId:    plugin.Manifest.Id,
+			PluginPath:  filepath.Dir(plugin.ManifestPath),
+			State:       pluginState,
+			Name:        plugin.Manifest.Name,
+			Description: plugin.Manifest.Description,
+			Version:     plugin.Manifest.Version,
+		}
+
+		return status, nil
+	}
+
+	return nil, ErrNotFound
 }
 
 func (env *Environment) Activate(id string) (manifest *model.Manifest, activated bool, reterr error) {

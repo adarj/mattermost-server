@@ -436,10 +436,39 @@ func TestGetMarketplacePlugins(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
+	samplePlugins := []*model.MarketplacePlugin{
+		{
+			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				HomepageURL:  "https://github.com/mattermost/mattermost-plugin-nps",
+				DownloadURL:  "https://github.com/mattermost/mattermost-plugin-nps/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
+				SignatureURL: "",
+				Manifest: &model.Manifest{
+					Id:               "com.mattermost.nps",
+					Name:             "User Satisfaction Surveys",
+					Description:      "This plugin sends quarterly user satisfaction surveys to gather feedback and help improve Mattermost.",
+					Version:          "1.0.3",
+					MinServerVersion: "5.14.0",
+				},
+			},
+			State: model.MarketPlacePluginStateNotInstalled,
+		},
+	}
+	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.WriteHeader(http.StatusOK)
+		json, _ := json.Marshal(samplePlugins)
+		res.Write(json)
+	}))
+	defer func() { testServer.Close() }()
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.Enable = true
 		*cfg.PluginSettings.EnableUploads = true
+		*cfg.PluginSettings.MarketplaceUrl = testServer.URL
 	})
+
+	ps, resp := th.SystemAdminClient.GetMarketplacePlugins()
+	CheckNoError(t, resp)
+	require.Equal(t, samplePlugins, ps)
 }
 
 func findClusterMessages(event string, msgs []*model.ClusterMessage) []*model.ClusterMessage {

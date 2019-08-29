@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/services/filesstore"
+	"github.com/mattermost/mattermost-server/services/marketplace"
 	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/pkg/errors"
 )
@@ -398,6 +399,58 @@ func (a *App) GetPlugins() (*model.PluginsResponse, *model.AppError) {
 	}
 
 	return resp, nil
+}
+
+func (a *App) GetMarketplacePlugins() ([]*model.MarketplacePlugin, *model.AppError) {
+	marketplaceClient := marketplace.NewClient(
+		*a.Config().PluginSettings.MarketplaceUrl,
+		a.HTTPService,
+	)
+
+	plugins, err := marketplaceClient.GetPlugins()
+	if err != nil {
+		return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.abc.app_error", nil, err.Error(), http.StatusInternalServerError)
+		// mlog.Error("Failed to get plugins from marketplace " + )
+	}
+
+	pluginEnv := a.GetPluginsEnvironment()
+	var result []*model.MarketplacePlugin
+
+	for _, p := range plugins {
+		// Skip installed plugins
+		if pluginEnv != nil {
+			if _, err := pluginEnv.Status(p.Manifest.Id); err == nil {
+				// Plugin is installed
+				continue
+			}
+		}
+
+		result = append(result, &model.MarketplacePlugin{
+			BaseMarketplacePlugin: p,
+			State:                 model.MarketPlacePluginStateNotInstalled,
+		})
+	}
+
+	// Append installed plugins
+	bInfo, err := pluginEnv.Available()
+	if err != nil {
+		mlog.Error("Failed to get plugins from marketplace " + err.Error())
+	}
+
+	for _, b := range bInfo {
+		if b.Manifest == nil {
+			continue
+		}
+
+		result = append(result, &model.MarketplacePlugin{
+			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				Manifest: b.Manifest,
+			},
+			State: model.MarketPlacePluginStateInstalled,
+		})
+	}
+
+	return result, nil
 }
 
 // notifyPluginEnabled notifies connected websocket clients across all peers if the version of the given
