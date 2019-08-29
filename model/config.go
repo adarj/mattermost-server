@@ -2193,8 +2193,7 @@ type PluginState struct {
 }
 
 type PublicKeyDescription struct {
-	Name        string
-	Description string
+	Name string
 }
 
 type PluginSettings struct {

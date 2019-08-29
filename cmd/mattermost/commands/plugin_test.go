@@ -53,13 +53,37 @@ func TestPluginPublicKeys(t *testing.T) {
 	cfg := th.Config()
 	cfg.PluginSettings.PublicKeys = []*model.PublicKeyDescription{
 		&model.PublicKeyDescription{
-			Name:        "public key",
-			Description: "some desc",
+			Name: "public-key",
 		},
 	}
 	th.SetConfig(cfg)
 
-	output := th.CheckCommand(t, "plugin", "publickeys")
-	assert.Contains(t, string(output), "public key")
-	assert.Contains(t, string(output), "Description: some desc")
+	output := th.CheckCommand(t, "plugin", "public-keys")
+	assert.Contains(t, output, "public-key")
+}
+
+func TestAddPluginPublicKeys(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	cfg := th.Config()
+	cfg.PluginSettings.PublicKeys = []*model.PublicKeyDescription{
+		&model.PublicKeyDescription{
+			Name: "public key",
+		},
+	}
+	th.SetConfig(cfg)
+
+	output := th.CheckCommand(t, "plugin", "add-public-key", "pk1.asc")
+	assert.Contains(t, output, "Unable to add public key: pk1.asc")
+
+	// path, _ := fileutils.FindDir("tests")
+	// filename := filepath.Join(path, "tls_test_key.pem")
+
+	// output = th.CheckCommand(t, "plugin", "add-public-key", filename)
+	// assert.Contains(t, output, "Added public key: "+filename)
+	// assert.Equal(t, th.Config().PluginSettings.PublicKeys[0].Name, "public key")
+	// assert.Equal(t, th.Config().PluginSettings.PublicKeys[1].Name, filename)
+	// assert.Equal(t, th.Config().PluginSettings.PublicKeys[1].Name, "pk1.asc")
+	// assert.Equal(t, th.Config().PluginSettings.PublicKeys[2].Name, "pk2.asc")
 }

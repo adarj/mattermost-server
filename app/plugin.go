@@ -4,6 +4,7 @@
 package app
 
 import (
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -455,4 +456,38 @@ func (a *App) GetPluginPublicKeys() ([]*model.PublicKeyDescription, *model.AppEr
 	config := a.Config().PluginSettings
 
 	return config.PublicKeys, nil
+}
+
+func (a *App) writePublicKeyFile(filename string) *model.AppError {
+	fileReader, err := os.Open(filename)
+	if err != nil {
+		return model.NewAppError("AddPublicKey", "api.admin.add_certificate.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	defer fileReader.Close()
+
+	data, err := ioutil.ReadAll(fileReader)
+	if err != nil {
+		return model.NewAppError("AddPublicKey", "api.admin.add_certificate.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	err = a.Srv.configStore.SetFile(filename, data)
+	if err != nil {
+		return model.NewAppError("AddPublicKey", "api.admin.add_certificate.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
+}
+
+func (a *App) AddPublicKey(filename string) *model.AppError {
+	if err := a.writePublicKeyFile(filename); err != nil {
+		return err
+	}
+	cfg := a.Config().Clone()
+	cfg.PluginSettings.PublicKeys = append(cfg.PluginSettings.PublicKeys, &model.PublicKeyDescription{filename})
+
+	if err := cfg.IsValid(); err != nil {
+		return err
+	}
+
+	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
+
+	return nil
 }

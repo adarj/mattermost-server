@@ -56,12 +56,28 @@ var PluginListCmd = &cobra.Command{
 }
 
 var PluginPublicKeysCmd = &cobra.Command{
-	Use:     "publickeys",
+	Use:     "public-keys",
 	Short:   "List public keys",
 	Long:    "List names and descriptions of all public keys installed on your Mattermost server.",
-	Example: `  plugin public keys`,
+	Example: `  plugin public-keys`,
 	RunE:    PluginPublicKeysCmdF,
 }
+
+var PluginAddPublicKeyCmd = &cobra.Command{
+	Use:     "add-public-key [public-keys]",
+	Short:   "Adds public key",
+	Long:    "Adds public key for plugins on your Mattermost server.",
+	Example: `  plugin add-public-key my-pk-file.asc`,
+	RunE:    PluginAddPublicKeyCmdF,
+}
+
+// var PluginDeletePublicKeyCmd = &cobra.Command{
+// 	Use:     "delete-public-key [public-key]",
+// 	Short:   "Deletes public key",
+// 	Long:    "Deletes public key for plugins on your Mattermost server.",
+// 	Example: `  plugin delete-public-key --name "My Key" `,
+// 	RunE:    PluginDeletePublicKeyCmdF,
+// }
 
 func init() {
 	PluginCmd.AddCommand(
@@ -71,6 +87,7 @@ func init() {
 		PluginDisableCmd,
 		PluginListCmd,
 		PluginPublicKeysCmd,
+		PluginAddPublicKeyCmd,
 	)
 	RootCmd.AddCommand(PluginCmd)
 }
@@ -208,7 +225,30 @@ func PluginPublicKeysCmdF(command *cobra.Command, args []string) error {
 
 	CommandPrettyPrintln("Listing public keys")
 	for _, publicKeyDesc := range pluginPublicKeysResp {
-		CommandPrettyPrintln(publicKeyDesc.Name + ", Description: " + publicKeyDesc.Description)
+		CommandPrettyPrintln(publicKeyDesc.Name)
+	}
+
+	return nil
+}
+
+func PluginAddPublicKeyCmdF(command *cobra.Command, args []string) error {
+	a, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer a.Shutdown()
+
+	if len(args) < 1 {
+		return errors.New("Expected at least one argument. See help text for details.")
+	}
+
+	for _, pkFilename := range args {
+		if err := a.AddPublicKey(pkFilename); err != nil {
+			CommandPrintErrorln("Unable to add public key: " + pkFilename + ". Error: " + err.Error())
+		} else {
+			CommandPrettyPrintln("Added public key: " + pkFilename)
+		}
+
 	}
 
 	return nil
