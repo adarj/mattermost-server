@@ -477,6 +477,14 @@ func (a *App) writePublicKeyFile(file string) *model.AppError {
 	return nil
 }
 
+func (a *App) GetPublicKey(filename string) ([]byte, *model.AppError) {
+	data, err := a.Srv.configStore.GetFile(filename)
+	if err != nil {
+		return nil, model.NewAppError("GetPublicKey", "???", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return data, nil
+}
+
 func containsPK(publicKeys []*model.PublicKeyDescription, filename string) bool {
 	for _, pk := range publicKeys {
 		if pk.Name == filename {

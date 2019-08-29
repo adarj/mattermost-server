@@ -62,6 +62,22 @@ func TestPluginPublicKeys(t *testing.T) {
 	assert.Contains(t, output, "public-key")
 }
 
+func TestPluginPublicKeyDetails(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	cfg := th.Config()
+	cfg.PluginSettings.PublicKeys = []*model.PublicKeyDescription{
+		&model.PublicKeyDescription{
+			Name: "public-key",
+		},
+	}
+	th.SetConfig(cfg)
+
+	output := th.CheckCommand(t, "plugin", "public-key-details")
+	assert.Contains(t, output, "Unable to get plugin public key: public-key")
+}
+
 func TestAddPluginPublicKeys(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
