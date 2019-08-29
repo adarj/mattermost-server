@@ -56,34 +56,34 @@ var PluginListCmd = &cobra.Command{
 }
 
 var PluginPublicKeysCmd = &cobra.Command{
-	Use:     "public-keys",
+	Use:     "keys",
 	Short:   "List public keys",
 	Long:    "List names of all public keys installed on your Mattermost server.",
-	Example: `  plugin public-keys`,
+	Example: `  plugin keys`,
 	RunE:    pluginPublicKeysCmdF,
 }
 
 var PluginPublicKeyDetailsCmd = &cobra.Command{
-	Use:     "public-key-details",
+	Use:     "key-details",
 	Short:   "List public keys in detailed format",
 	Long:    "List names and details of all public keys installed on your Mattermost server.",
-	Example: `  plugin public-key-details`,
+	Example: `  plugin key-details`,
 	RunE:    pluginPublicKeyDetailsCmdF,
 }
 
 var PluginAddPublicKeyCmd = &cobra.Command{
-	Use:     "add-public-key [public-keys]",
+	Use:     "add-key [keys]",
 	Short:   "Adds public keys",
 	Long:    "Adds public keys for plugins on your Mattermost server.",
-	Example: `  plugin add-public-key my-pk-file1.asc my-pk-file2.asc`,
+	Example: `  plugin add-key my-pk-file1.asc my-pk-file2.asc`,
 	RunE:    pluginAddPublicKeyCmdF,
 }
 
 var PluginDeletePublicKeyCmd = &cobra.Command{
-	Use:     "delete-public-key [public-keys]",
+	Use:     "delete-key [public-keys]",
 	Short:   "Deletes public keys",
 	Long:    "Deletes public keys for plugins on your Mattermost server.",
-	Example: `  plugin delete-public-key my-pk-file1.asc my-pk-file2.asc `,
+	Example: `  plugin delete-key my-pk-file1.asc my-pk-file2.asc `,
 	RunE:    pluginDeletePublicKeyCmdF,
 }
 
@@ -259,7 +259,7 @@ func pluginPublicKeyDetailsCmdF(command *cobra.Command, args []string) error {
 		if err != nil {
 			CommandPrintErrorln("Unable to get plugin public key: " + publicKeyDesc.Name + ". Error: " + err.Error())
 		}
-		CommandPrettyPrintln("Plugin name: " + publicKeyDesc.Name + ". Public key: \n" + string(key) + "\n")
+		CommandPrettyPrintln("Plugin name: " + publicKeyDesc.Name + ". \nPublic key: \n" + string(key) + "\n")
 	}
 
 	return nil

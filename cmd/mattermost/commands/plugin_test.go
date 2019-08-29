@@ -58,7 +58,7 @@ func TestPluginPublicKeys(t *testing.T) {
 	}
 	th.SetConfig(cfg)
 
-	output := th.CheckCommand(t, "plugin", "public-keys")
+	output := th.CheckCommand(t, "plugin", "keys")
 	assert.Contains(t, output, "public-key")
 }
 
@@ -74,7 +74,7 @@ func TestPluginPublicKeyDetails(t *testing.T) {
 	}
 	th.SetConfig(cfg)
 
-	output := th.CheckCommand(t, "plugin", "public-key-details")
+	output := th.CheckCommand(t, "plugin", "key-details")
 	assert.Contains(t, output, "Unable to get plugin public key: public-key")
 }
 
@@ -90,7 +90,7 @@ func TestAddPluginPublicKeys(t *testing.T) {
 	}
 	th.SetConfig(cfg)
 
-	output := th.CheckCommand(t, "plugin", "add-public-key", "pk1.asc")
+	output := th.CheckCommand(t, "plugin", "add-key", "pk1.asc")
 	assert.Contains(t, output, "Unable to add public key: pk1.asc")
 }
 
@@ -106,6 +106,6 @@ func TestDeletePluginPublicKeys(t *testing.T) {
 	}
 	th.SetConfig(cfg)
 
-	output := th.CheckCommand(t, "plugin", "delete-public-key", "pk1.asc")
+	output := th.CheckCommand(t, "plugin", "delete-key", "pk1.asc")
 	assert.Contains(t, output, "Unable to delete public key: pk1.asc")
 }
