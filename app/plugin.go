@@ -459,32 +459,32 @@ func (a *App) GetPluginPublicKeys() ([]*model.PublicKeyDescription, *model.AppEr
 	return config.PublicKeys, nil
 }
 
+// GetPublicKey will return the actual public key saved in the `filename` file.
+func (a *App) GetPublicKey(filename string) ([]byte, *model.AppError) {
+	data, err := a.Srv.configStore.GetFile(filename)
+	if err != nil {
+		return nil, model.NewAppError("GetPublicKey", "api.plugin.get_public_key.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return data, nil
+}
+
 func (a *App) writePublicKeyFile(file string) *model.AppError {
 	_, filename := filepath.Split(file)
 	fileReader, err := os.Open(file)
 	if err != nil {
-		return model.NewAppError("AddPublicKey", "api.admin.add_certificate.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("AddPublicKey", "api.plugin.add_public_key.open.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	defer fileReader.Close()
 
 	data, err := ioutil.ReadAll(fileReader)
 	if err != nil {
-		return model.NewAppError("AddPublicKey", "api.admin.add_certificate.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("AddPublicKey", "api.plugin.add_public_key.read.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	err = a.Srv.configStore.SetFile(filename, data)
 	if err != nil {
-		return model.NewAppError("AddPublicKey", "api.admin.add_certificate.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("AddPublicKey", "api.plugin.add_public_key.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return nil
-}
-
-// GetPublicKey will return the actual public key saved in the `filename` file.
-func (a *App) GetPublicKey(filename string) ([]byte, *model.AppError) {
-	data, err := a.Srv.configStore.GetFile(filename)
-	if err != nil {
-		return nil, model.NewAppError("GetPublicKey", "???", nil, err.Error(), http.StatusInternalServerError)
-	}
-	return data, nil
 }
 
 func containsPK(publicKeys []*model.PublicKeyDescription, filename string) bool {
@@ -531,10 +531,10 @@ func (a *App) DeletePublicKey(file string) *model.AppError {
 
 	cfg := a.Config().Clone()
 	if !containsPK(cfg.PluginSettings.PublicKeys, filename) {
-		return model.NewAppError("DeletePublicKey", "api.admin.remove_certificate.delete.app_error", nil, "", http.StatusInternalServerError)
+		return model.NewAppError("DeletePublicKey", "api.plugin.delete_public_key.contain.app_error", nil, "", http.StatusInternalServerError)
 	}
 	if err := a.Srv.configStore.RemoveFile(filename); err != nil {
-		return model.NewAppError("DeletePublicKey", "api.admin.remove_certificate.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("DeletePublicKey", "api.plugin.delete_public_key.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	cfg.PluginSettings.PublicKeys = removePK(cfg.PluginSettings.PublicKeys, filename)
