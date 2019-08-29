@@ -60,24 +60,24 @@ var PluginPublicKeysCmd = &cobra.Command{
 	Short:   "List public keys",
 	Long:    "List names and descriptions of all public keys installed on your Mattermost server.",
 	Example: `  plugin public-keys`,
-	RunE:    PluginPublicKeysCmdF,
+	RunE:    pluginPublicKeysCmdF,
 }
 
 var PluginAddPublicKeyCmd = &cobra.Command{
 	Use:     "add-public-key [public-keys]",
-	Short:   "Adds public key",
-	Long:    "Adds public key for plugins on your Mattermost server.",
-	Example: `  plugin add-public-key my-pk-file.asc`,
-	RunE:    PluginAddPublicKeyCmdF,
+	Short:   "Adds public keys",
+	Long:    "Adds public keys for plugins on your Mattermost server.",
+	Example: `  plugin add-public-key my-pk-file1.asc my-pk-file2.asc`,
+	RunE:    pluginAddPublicKeyCmdF,
 }
 
-// var PluginDeletePublicKeyCmd = &cobra.Command{
-// 	Use:     "delete-public-key [public-key]",
-// 	Short:   "Deletes public key",
-// 	Long:    "Deletes public key for plugins on your Mattermost server.",
-// 	Example: `  plugin delete-public-key --name "My Key" `,
-// 	RunE:    PluginDeletePublicKeyCmdF,
-// }
+var PluginDeletePublicKeyCmd = &cobra.Command{
+	Use:     "delete-public-key [public-keys]",
+	Short:   "Deletes public keys",
+	Long:    "Deletes public keys for plugins on your Mattermost server.",
+	Example: `  plugin delete-public-key my-pk-file1.asc my-pk-file2.asc `,
+	RunE:    pluginDeletePublicKeyCmdF,
+}
 
 func init() {
 	PluginCmd.AddCommand(
@@ -88,6 +88,7 @@ func init() {
 		PluginListCmd,
 		PluginPublicKeysCmd,
 		PluginAddPublicKeyCmd,
+		PluginDeletePublicKeyCmd,
 	)
 	RootCmd.AddCommand(PluginCmd)
 }
@@ -211,7 +212,7 @@ func pluginListCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func PluginPublicKeysCmdF(command *cobra.Command, args []string) error {
+func pluginPublicKeysCmdF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -231,7 +232,7 @@ func PluginPublicKeysCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func PluginAddPublicKeyCmdF(command *cobra.Command, args []string) error {
+func pluginAddPublicKeyCmdF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -242,11 +243,34 @@ func PluginAddPublicKeyCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
 
-	for _, pkFilePath := range args {
-		if err := a.AddPublicKey(pkFilePath); err != nil {
-			CommandPrintErrorln("Unable to add public key: " + pkFilePath + ". Error: " + err.Error())
+	for _, pkFile := range args {
+		if err := a.AddPublicKey(pkFile); err != nil {
+			CommandPrintErrorln("Unable to add public key: " + pkFile + ". Error: " + err.Error())
 		} else {
-			CommandPrettyPrintln("Added public key: " + pkFilePath)
+			CommandPrettyPrintln("Added public key: " + pkFile)
+		}
+
+	}
+
+	return nil
+}
+
+func pluginDeletePublicKeyCmdF(command *cobra.Command, args []string) error {
+	a, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer a.Shutdown()
+
+	if len(args) < 1 {
+		return errors.New("Expected at least one argument. See help text for details.")
+	}
+
+	for _, pkFile := range args {
+		if err := a.DeletePublicKey(pkFile); err != nil {
+			CommandPrintErrorln("Unable to delete public key: " + pkFile + ". Error: " + err.Error())
+		} else {
+			CommandPrettyPrintln("Deleted public key: " + pkFile)
 		}
 
 	}

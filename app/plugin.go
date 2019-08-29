@@ -505,3 +505,34 @@ func (a *App) AddPublicKey(file string) *model.AppError {
 
 	return nil
 }
+
+func removePK(publicKeys []*model.PublicKeyDescription, filename string) []*model.PublicKeyDescription {
+	for i, pk := range publicKeys {
+		if pk.Name == filename {
+			return append(publicKeys[:i], publicKeys[i+1:]...)
+		}
+	}
+	return publicKeys
+}
+
+// DeletePublicKey method will add plugin public key to the config.
+func (a *App) DeletePublicKey(file string) *model.AppError {
+	_, filename := filepath.Split(file)
+
+	cfg := a.Config().Clone()
+	if !containsPK(cfg.PluginSettings.PublicKeys, filename) {
+		return model.NewAppError("DeletePublicKey", "api.admin.remove_certificate.delete.app_error", nil, "", http.StatusInternalServerError)
+	}
+	if err := a.Srv.configStore.RemoveFile(filename); err != nil {
+		return model.NewAppError("DeletePublicKey", "api.admin.remove_certificate.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	cfg.PluginSettings.PublicKeys = removePK(cfg.PluginSettings.PublicKeys, filename)
+	if err := cfg.IsValid(); err != nil {
+		return err
+	}
+
+	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
+
+	return nil
+}
